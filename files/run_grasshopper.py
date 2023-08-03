@@ -31,27 +31,27 @@ output = gh.EvaluateDefinition(
 
 def get_value_from_tree(datatree: dict, param_name: str):
     """Get first value in datatree that matches given param_name"""
-    return next(
-        val['InnerTree']['{0}'][0]['data']
-        for val in datatree['values']
-        if val["ParamName"] == param_name
-    )
+    for val in datatree['values']:
+        if val["ParamName"] == param_name:
+            return val['InnerTree']['{0}'][0]['data']
 
 
-# Create a new rhino3dm file and add resulting geometry to file
+# Create a new rhino3dm file and save resulting geometry to file
 file = rhino3dm.File3dm()
-# output_geometry = output['values'][0]['InnerTree']['{0}'][0]['data']
 output_geometry = get_value_from_tree(output, "Geometry")
-floor_area = get_value_from_tree(output, "floor_area")
-gross_area = get_value_from_tree(output, "gross_area")
-floor_area = int(floor_area.replace("\"", ""))
-gross_area = int(gross_area.replace("\"", ""))
 obj = rhino3dm.CommonObject.Decode(json.loads(output_geometry))
 file.Objects.AddMesh(obj)
 
-# Save the rhino3dm file to your working directory
+# Save Rhino file to working directory
 file.Write(workdir + 'geometry.3dm', 7)
 
-# Save the output values to your working directory
+# Parse output data
+output_values = {}
+for key in ["floor_area", "gross_area", "facade_area", "avg_sun_hours_context", "avg_sun_hours_tower"]:
+    val = get_value_from_tree(output, key)
+    val = val.replace("\"", "")
+    output_values[key] = val
+
+# Save json file with output data to working directory
 with open(workdir + 'output.json', 'w') as f:
-    json.dump({"floor_area": floor_area, "gross_area": gross_area}, f)
+    json.dump(output_values, f)
