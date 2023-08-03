@@ -5,7 +5,7 @@ A VIKTOR sample app which runs a Grasshopper script with Ladybug sunhours analys
 
 This app demonstrates how to connect VIKTOR applications to Grasshopper scripts. The app is connected to a Rhino Grasshopper instance running on a server, and allows the user to run a Grasshopper script with a sunhours analysis. A twisting tower is configured through the app parameters, and each time the user updates a parameter, a Grasshopper script runs on the server that performs a sunhours analysis using the popular Ladybug plugin. The tower parameters can be adjusted and the resulting geometry and sunhour performance is visualized in real-time.
 
-![Screenshot 2023-08-03 114414](https://github.com/viktor-platform/sample-grasshopper-analysis/assets/93203883/0e9bc667-fcca-4d5e-89df-100f943efa18)
+![Screenshot 2023-08-03 133936](https://github.com/viktor-platform/sample-grasshopper-analysis/assets/93203883/fe68becc-870b-4699-b4a5-8326145cae67)
 
 **Configuration**
 
