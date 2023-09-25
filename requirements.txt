@@ -1,1 +1,3 @@
 viktor==14.4.0
+compute-rhino3d==0.12.2
+rhino3dm==7.15.0
