@@ -1,5 +1,7 @@
-# sample-grasshopper-analysis
-A VIKTOR sample app which runs a Grasshopper script with Ladybug sunhours analysis. 🦗🐞
+# Grasshopper analysis
+A VIKTOR sample app which runs a Grasshopper script with Ladybug sunhours analysis.
+
+> **_NOTE:_**  This app requires a worker
 
 **Functionality**
 
@@ -11,9 +13,9 @@ adjusted and the resulting geometry and sunhour performance is visualized in rea
 **Configuration**
 
 The Grasshopper script that is executed and the worker configuration used for this app can be found in this repo under `files`. For further documentation on
-how install and connect Rhino / Grasshopper to your VIKTOR app, head to https://docs.viktor.ai/docs/create-apps/software-integrations/rhino-grasshopper/.
+how install and connect Rhino / Grasshopper to your VIKTOR app, head to our [docs](https://docs.viktor.ai/docs/create-apps/software-integrations/rhino-grasshopper/).
 
 **Use Cases of Grasshopper integration**
 
 This integration opens the door to many exciting possibilities. It is possible to inject Grasshopper into existing VIKTOR workflows, run Grasshopper scripts
-using plug-ins from the browser or automate complex workflows with multiple Grasshopper files. Happy coding! 😊🎉
+using plug-ins from the browser or automate complex workflows with multiple Grasshopper files. Happy coding!
