@@ -44,7 +44,7 @@ class Controller(ViktorController):
     label = 'My Entity Type'
     parametrization = Parametrization(width=30)
 
-    @GeometryAndDataView("Geometry", duration_guess=0, update_label='Run Grasshopper')
+    @GeometryAndDataView("Geometry", duration_guess=0, update_label='Run Grasshopper', x_axis_to_right=True)
     def run_grasshopper(self, params, **kwargs):
 
         # Replace datetime object with month and day
@@ -69,7 +69,6 @@ class Controller(ViktorController):
 
         # Create a DataGroup object to display output data
         output_dict = json.loads(output_values.getvalue())
-        print(output_dict)
         data_group = DataGroup(
             *[DataItem(key.replace("_", " "), val) for key, val in output_dict.items()]
         )
