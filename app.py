@@ -1,9 +1,8 @@
+import viktor as vkt
 import datetime
 import json
-from io import BytesIO
-
-import viktor as vkt
-from viktor.external.generic import GenericAnalysis
+import rhino3dm
+from pathlib import Path
 
 
 class Parametrization(vkt.ViktorParametrization):
@@ -15,32 +14,19 @@ class Parametrization(vkt.ViktorParametrization):
         "\n\n Please fill in the following parameters:"
     )
 
-    # Input fields
-    floorplan_width = vkt.NumberField(
-        "Floorplan width", default=15, min=10, max=18, suffix="m", flex=100, variant='slider', step=1
-    )
-    twist_top = vkt.NumberField(
-        "Twist top", default=0.65, min=0.20, max=1.00, variant='slider', flex=100, step=0.01
-    )
-    floor_height = vkt.NumberField(
-        "Floor height", default=3.5, min=2.5, max=5.0, suffix="m", variant='slider', flex=100, step=0.1
-    )
-    tower_height = vkt.NumberField(
-        "Tower height", default=75, min=20, max=100, suffix="m", flex=100, variant='slider', step=1
-    )
-    rotation = vkt.NumberField(
-        "Rotation", default=60, min=0, max=90, suffix="°", flex=100, variant='slider', step=1
-    )
-    date = vkt.DateField(
-        'Date for the sun hour analysis', default=datetime.date.today(),  flex=100
-    )
+    floorplan_width = vkt.NumberField("Floorplan width", default=15, min=10, max=18, suffix="m", flex=100, variant='slider', step=1)
+    twist_top = vkt.NumberField("Twist top", default=0.65, min=0.20, max=1.00, variant='slider', flex=100, step=0.01)
+    floor_height = vkt.NumberField("Floor height", default=3.5, min=2.5, max=5.0, suffix="m", variant='slider', flex=100, step=0.1)
+    tower_height = vkt.NumberField("Tower height", default=75, min=20, max=100, suffix="m", flex=100, variant='slider', step=1)
+    rotation = vkt.NumberField("Rotation", default=60, min=0, max=90, suffix="°", flex=100, variant='slider', step=1)
+    date = vkt.DateField('Date for the sun hour analysis', default=datetime.date.today(), flex=100)
 
 
 class Controller(vkt.ViktorController):
     label = 'My Entity Type'
     parametrization = Parametrization(width=30)
 
-    @vkt.GeometryAndDataView("Geometry", duration_guess=0, update_label='Run Grasshopper', x_axis_to_right=True)
+    @vkt.GeometryView("Geometry", duration_guess=5, update_label='Run Grasshopper', x_axis_to_right=True)
     def run_grasshopper(self, params, **kwargs):
 
         # Replace datetime object with month and day
@@ -49,24 +35,21 @@ class Controller(vkt.ViktorController):
         params["day"] = date.day
         params.pop("date")
 
-        # Create a JSON file from the input parameters
-        input_json = json.dumps(params)
+        grasshopper_script_path = Path(__file__).parent / "sunlight_analysis.gh"
+        script = vkt.File.from_path(grasshopper_script_path)
+        input_parameters = dict(params)
 
-        # Generate the input files
-        files = [('input.json', BytesIO(bytes(input_json, 'utf8')))]
+        # Run the Grasshopper analysis and obtain the output data
+        analysis = vkt.grasshopper.GrasshopperAnalysis(script=script, input_parameters=input_parameters)
+        analysis.execute(timeout=30)
+        output = analysis.get_output()
 
-        # Run the Grasshopper analysis and obtain the output files
-        generic_analysis = GenericAnalysis(files=files, executable_key="run_grasshopper", output_filenames=[
-            "geometry.3dm", "output.json"
-        ])
-        generic_analysis.execute(timeout=60)
-        rhino_3dm_file = generic_analysis.get_output_file("geometry.3dm", as_file=True)
-        output_values: vkt.File = generic_analysis.get_output_file("output.json", as_file=True)
+        # Convert output data to mesh
+        file3dm = rhino3dm.File3dm()
+        obj = rhino3dm.CommonObject.Decode(json.loads(output["values"][0]["InnerTree"]['{0}'][0]["data"]))
+        file3dm.Objects.Add(obj)
 
-        # Create a DataGroup object to display output data
-        output_dict = json.loads(output_values.getvalue())
-        data_group = vkt.DataGroup(
-            *[vkt.DataItem(key.replace("_", " "), val) for key, val in output_dict.items()]
-        )
-
-        return vkt.GeometryAndDataResult(geometry=rhino_3dm_file, geometry_type="3dm", data=data_group)
+        # Write to geometry_file
+        geometry_file = vkt.File()
+        file3dm.Write(geometry_file.source, version=7)
+        return vkt.GeometryResult(geometry=geometry_file, geometry_type="3dm")
